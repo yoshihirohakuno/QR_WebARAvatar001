@@ -1,0 +1,213 @@
+{
+    "3": {
+        "inputs": {
+            "seed": 84930284,
+            "steps": 25,
+            "cfg": 7,
+            "sampler_name": "euler_ancestral",
+            "scheduler": "karras",
+            "denoise": 0.65,
+            "model": [
+                "28",
+                0
+            ],
+            "positive": [
+                "6",
+                0
+            ],
+            "negative": [
+                "7",
+                0
+            ],
+            "latent_image": [
+                "5",
+                0
+            ]
+        },
+        "class_type": "KSampler",
+        "_meta": {
+            "title": "KSampler"
+        }
+    },
+    "4": {
+        "inputs": {
+            "ckpt_name": "dreamshaper_8_pruned.safetensors"
+        },
+        "class_type": "CheckpointLoaderSimple",
+        "_meta": {
+            "title": "Load Checkpoint"
+        }
+    },
+    "5": {
+        "inputs": {
+            "pixels": [
+                "35",
+                0
+            ],
+            "vae": [
+                "4",
+                2
+            ]
+        },
+        "class_type": "VAEEncode",
+        "_meta": {
+            "title": "VAE Encode"
+        }
+    },
+    "35": {
+        "inputs": {
+            "upscale_method": "bilinear",
+            "width": 512,
+            "height": 512,
+            "crop": "center",
+            "image": [
+                "10",
+                0
+            ]
+        },
+        "class_type": "ImageScale",
+        "_meta": {
+            "title": "Upscale Image"
+        }
+    },
+    "6": {
+        "inputs": {
+            "text": "1girl/1boy, 3d character, cute, big eyes, detailed face, smooth skin, masterpiece, best quality, highres, vibrant colors, solo, white background",
+            "clip": [
+                "4",
+                1
+            ]
+        },
+        "class_type": "CLIPTextEncode",
+        "_meta": {
+            "title": "CLIP Text Encode (Prompt)"
+        }
+    },
+    "7": {
+        "inputs": {
+            "text": "photorealistic, raw photo, ugly, duplicate, morbid, mutilated, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, text, error",
+            "clip": [
+                "4",
+                1
+            ]
+        },
+        "class_type": "CLIPTextEncode",
+        "_meta": {
+            "title": "CLIP Text Encode (Negative Prompt)"
+        }
+    },
+    "8": {
+        "inputs": {
+            "samples": [
+                "3",
+                0
+            ],
+            "vae": [
+                "4",
+                2
+            ]
+        },
+        "class_type": "VAEDecode",
+        "_meta": {
+            "title": "VAE Decode"
+        }
+    },
+    "10": {
+        "inputs": {
+            "image": "dummy_user_face.png",
+            "upload": "image"
+        },
+        "class_type": "LoadImage",
+        "_meta": {
+            "title": "Load Image"
+        }
+    },
+    "28": {
+        "inputs": {
+            "weight": 1.1,
+            "weight_type": "linear",
+            "combine_embeds": "concat",
+            "start_at": 0,
+            "end_at": 1,
+            "embeds_scaling": "V only",
+            "model": [
+                "4",
+                0
+            ],
+            "ipadapter": [
+                "29",
+                0
+            ],
+            "clip_vision": [
+                "30",
+                0
+            ],
+            "image": [
+                "10",
+                0
+            ]
+        },
+        "class_type": "IPAdapterAdvanced",
+        "_meta": {
+            "title": "IPAdapter Advanced"
+        }
+    },
+    "29": {
+        "inputs": {
+            "ipadapter_file": "ip-adapter_sd15.safetensors"
+        },
+        "class_type": "IPAdapterModelLoader",
+        "_meta": {
+            "title": "IPAdapter Model Loader"
+        }
+    },
+    "30": {
+        "inputs": {
+            "clip_name": "CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors"
+        },
+        "class_type": "CLIPVisionLoader",
+        "_meta": {
+            "title": "Load CLIP Vision"
+        }
+    },
+    "31": {
+        "inputs": {
+            "providers": "CPU",
+            "image": [
+                "8",
+                0
+            ],
+            "rembg_session": [
+                "33",
+                0
+            ]
+        },
+        "class_type": "ImageRemoveBackground+",
+        "_meta": {
+            "title": "Layer Utility: Remove Background"
+        }
+    },
+    "32": {
+        "inputs": {
+            "filename_prefix": "avatar_face_out",
+            "images": [
+                "31",
+                0
+            ]
+        },
+        "class_type": "SaveImage",
+        "_meta": {
+            "title": "Save Image"
+        }
+    },
+    "33": {
+        "inputs": {
+            "model": "u2net: general purpose",
+            "providers": "CPU"
+        },
+        "class_type": "RemBGSession+",
+        "_meta": {
+            "title": "RemBG Session"
+        }
+    }
+}

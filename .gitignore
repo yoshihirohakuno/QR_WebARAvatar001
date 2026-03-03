@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ComfyUI
+ComfyUI_portable/
+
+# System
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Ignore original large archives if any
+my_avatar.glb
+dummy_avatar*.glb
+
+# Allow the final optimized asset
+!web/assets/avatar_final.glb

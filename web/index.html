@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>WebAR Avatar Card</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.2.0/dist/aframe-extras.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      color: white;
+      font-family: -apple-system, sans-serif;
+    }
+
+    #overlay h1 {
+      font-size: 26px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    #overlay p {
+      font-size: 14px;
+      opacity: 0.7;
+      text-align: center;
+      max-width: 280px;
+    }
+
+    .btn-start {
+      padding: 16px 40px;
+      font-size: 18px;
+      font-weight: 700;
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #007aff, #5ac8fa);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 6px 30px rgba(0, 122, 255, 0.45);
+    }
+
+    #status-bar {
+      position: fixed;
+      bottom: 30px;
+      left: 0;
+      right: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      z-index: 8000;
+    }
+
+    #status-text {
+      color: white;
+      font-size: 14px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 8px 18px;
+      border-radius: 20px;
+    }
+
+    #audioBtn {
+      display: none;
+      padding: 14px 32px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      background: #34c759;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(52, 199, 89, 0.4);
+    }
+
+    #audioBtn:active {
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="overlay">
+    <h1>📇 AR Avatar Card</h1>
+    <p>カメラを起動してQRコードにかざすと3Dアバターが現れます</p>
+    <button class="btn-start" id="startBtn">📷 Start AR</button>
+  </div>
+
+  <div id="status-bar">
+    <div id="status-text">初期化中...</div>
+    <button id="audioBtn">🔊 挨拶を聞く</button>
+  </div>
+
+  <a-scene id="scene"
+    mindar-image="imageTargetSrc: ./assets/targets.mind; autoStart: false; uiLoading: no; uiScanning: no; uiError: no; filterMinCF: 0.001; filterBeta: 10;"
+    color-space="sRGB" renderer="colorManagement: true" vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false" loading-screen="enabled: false">
+
+    <a-assets>
+      <a-asset-item id="avatarModel" src="./assets/avatar_final.glb"></a-asset-item>
+    </a-assets>
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-entity mindar-image-target="targetIndex: 0">
+      <!-- Shadow -->
+      <a-plane position="0 -0.02 0" rotation="-90 0 0" width="1.0" height="1.0"
+        material="color:#000; opacity:0.15; transparent:true"></a-plane>
+
+      <!-- Avatar model -->
+      <a-entity id="avatarEntity" gltf-model="#avatarModel" position="0 0 0" scale="1.0 1.0 1.0"
+        animation-mixer="clip: *; loop: once; clampWhenFinished: true; timeScale: 0">
+      </a-entity>
+    </a-entity>
+
+    <a-light type="ambient" intensity="1.0"></a-light>
+    <a-light type="directional" intensity="0.8" position="3 8 5"></a-light>
+  </a-scene>
+
+  <script>
+    var overlay = document.getElementById('overlay');
+    var startBtn = document.getElementById('startBtn');
+    var statusBar = document.getElementById('status-bar');
+    var statusText = document.getElementById('status-text');
+    var audioBtn = document.getElementById('audioBtn');
+    var sceneEl = document.getElementById('scene');
+    var avatarEntity = document.getElementById('avatarEntity');
+
+    startBtn.addEventListener('click', function () {
+      overlay.style.display = 'none';
+      statusBar.style.display = 'flex';
+      statusText.textContent = 'カメラ起動中...';
+
+      var tryStart = function () {
+        var arSystem = sceneEl.systems && sceneEl.systems['mindar-image-system'];
+        if (arSystem) {
+          arSystem.start();
+          statusText.textContent = 'QRコードにカメラを向けてください';
+          audioBtn.style.display = 'block';
+        } else {
+          setTimeout(tryStart, 300);
+        }
+      };
+
+      if (sceneEl.hasLoaded) {
+        tryStart();
+      } else {
+        sceneEl.addEventListener('loaded', function () { tryStart(); }, { once: true });
+      }
+    });
+
+    sceneEl.addEventListener('targetFound', function () {
+      statusText.textContent = '✅ アバター認識中！';
+    });
+    sceneEl.addEventListener('targetLost', function () {
+      statusText.textContent = 'QRコードにカメラを向けてください';
+    });
+
+    // Audio & Animation
+    var audio = new Audio('./assets/greeting.mp3');
+    var isPlaying = false;
+    var bowTimers = [];
+
+    // Trigger a single bow animation (play from start, then stop)
+    function playBow() {
+      // Reset animation to beginning and play
+      avatarEntity.setAttribute('animation-mixer', 'clip: *; loop: once; clampWhenFinished: true; timeScale: 1');
+      // Force restart from frame 0
+      var comp = avatarEntity.components['animation-mixer'];
+      if (comp && comp.mixer) {
+        comp.mixer.stopAllAction();
+        var clips = comp.mixer._actions;
+        if (clips && clips.length > 0) {
+          clips.forEach(function (a) { a.reset().play(); });
+        }
+      }
+    }
+
+    audioBtn.addEventListener('click', function () {
+      if (isPlaying) return;
+      isPlaying = true;
+      audio.currentTime = 0;
+      audio.play().catch(function (e) { console.warn('audio err:', e); isPlaying = false; });
+
+      // Clear any previous timers
+      bowTimers.forEach(function (t) { clearTimeout(t); });
+      bowTimers = [];
+
+      // Bow 1: 「〜ありがとうございました。」 → starts around 2.0s
+      bowTimers.push(setTimeout(function () { playBow(); }, 2000));
+
+      // Bow 2: 「それでは、ご検討〜よろしくお願いいたします。」 → starts around 7.5s
+      bowTimers.push(setTimeout(function () { playBow(); }, 7500));
+    });
+
+    audio.addEventListener('ended', function () {
+      isPlaying = false;
+      bowTimers.forEach(function (t) { clearTimeout(t); });
+      bowTimers = [];
+      // Reset to start pose
+      avatarEntity.setAttribute('animation-mixer', 'clip: *; loop: once; clampWhenFinished: true; timeScale: 0');
+    });
+  </script>
+</body>
+
+</html>

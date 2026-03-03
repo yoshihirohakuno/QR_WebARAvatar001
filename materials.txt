@@ -1,0 +1,4 @@
+--- Images ---
+Image 0: name=None, mime=image/jpeg
+--- Textures ---
+Texture 0: name=None, source=0

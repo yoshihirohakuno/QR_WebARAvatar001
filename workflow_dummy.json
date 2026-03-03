@@ -1,0 +1,25 @@
+{
+    "1": {
+        "inputs": {
+            "image": "dummy_user_face.png",
+            "upload": "image"
+        },
+        "class_type": "LoadImage",
+        "_meta": {
+            "title": "Load Image"
+        }
+    },
+    "2": {
+        "inputs": {
+            "filename_prefix": "avatar_face_out",
+            "images": [
+                "1",
+                0
+            ]
+        },
+        "class_type": "SaveImage",
+        "_meta": {
+            "title": "Save Image"
+        }
+    }
+}
