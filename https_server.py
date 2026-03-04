@@ -38,6 +38,7 @@ def generate_cert():
                 x509.SubjectAlternativeName([
                     x509.DNSName('localhost'),
                     x509.IPAddress(ipaddress.IPv4Address('192.168.3.16')),
+                    x509.IPAddress(ipaddress.IPv4Address('162.120.184.20')),
                 ]), critical=False
             )
             .sign(key, hashes.SHA256())
@@ -59,7 +60,7 @@ def generate_cert():
             '-keyout', KEY_FILE, '-out', CERT_FILE,
             '-days', '365', '-nodes',
             '-subj', '/CN=webar-local',
-            '-addext', 'subjectAltName=IP:192.168.3.16,DNS:localhost'
+            '-addext', 'subjectAltName=IP:192.168.3.16,IP:162.120.184.20,DNS:localhost'
         ], capture_output=True)
         if result.returncode == 0:
             print("Certificate generated via openssl!")
@@ -91,10 +92,11 @@ print(f"\n=========================================")
 print(f"  HTTPS Server running!")
 print(f"  PC:    https://localhost:{PORT}")
 print(f"  Phone (same WiFi): https://192.168.3.16:{PORT}")
+print(f"  Phone (External):  https://162.120.184.20:{PORT}")
 print(f"=========================================")
 print(f"  NOTE: On first access, browser will warn about self-signed cert.")
 print(f"  On iPhone Safari: tap 'Show Details' -> 'visit this website' -> Continue")
-print(f"  On Android Chrome: tap 'Advanced' -> 'Proceed to 192.168.3.16 (unsafe)'")
+print(f"  On Android Chrome: tap 'Advanced' -> 'Proceed to server IP (unsafe)'")
 print(f"=========================================\n")
 
 server.serve_forever()

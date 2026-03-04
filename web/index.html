@@ -127,8 +127,8 @@
         material="color:#000; opacity:0.15; transparent:true"></a-plane>
 
       <!-- Avatar model -->
-      <a-entity id="avatarEntity" gltf-model="#avatarModel" position="0 0 0" scale="1.0 1.0 1.0"
-        animation-mixer="clip: *; loop: once; clampWhenFinished: true; timeScale: 0">
+      <a-entity id="avatarEntity" gltf-model="#avatarModel" position="0 0 0" scale="1.5 1.5 1.5"
+        animation-mixer="clip: *; loop: once; clampWhenFinished: true; timeScale: 0" fix-rendering>
       </a-entity>
     </a-entity>
 
@@ -137,6 +137,31 @@
   </a-scene>
 
   <script>
+    // カスタムコンポーネント: 描画のチラつき（Z-fighting）と表示消失（Frustum Culling）を修正
+    AFRAME.registerComponent('fix-rendering', {
+      init: function () {
+        this.el.addEventListener('model-loaded', () => {
+          const obj = this.el.getObject3D('mesh');
+          if (!obj) return;
+
+          obj.traverse((node) => {
+            if (node.isMesh) {
+              // お辞儀した時に頭などの一部がカメラ枠から外れて丸ごと非表示になってしまうバグ（Culling）を無効化
+              node.frustumCulled = false;
+
+              // 服と体のメッシュが重なってチラつく（Z-fighting）のを防ぐため、マテリアルの深度描画を微調整
+              if (node.material) {
+                node.material.depthWrite = true;
+                node.material.depthTest = true;
+                // 必要に応じてアルファテストの追加（透明なフチのチラつき防止）
+                node.material.alphaTest = 0.5;
+              }
+            }
+          });
+        });
+      }
+    });
+
     var overlay = document.getElementById('overlay');
     var startBtn = document.getElementById('startBtn');
     var statusBar = document.getElementById('status-bar');
