@@ -116,7 +116,8 @@
     device-orientation-permission-ui="enabled: false" loading-screen="enabled: false">
 
     <a-assets>
-      <a-asset-item id="avatarModel" src="./assets/avatar_final.glb"></a-asset-item>
+      <a-asset-item id="avatarBowModel" src="./assets/avatar_final_01/Meshy_AI_biped/Meshy_AI_Animation_Formal_Bow_withSkin.glb"></a-asset-item>
+      <a-asset-item id="avatarTalkModel" src="./assets/avatar_final_01/Meshy_AI_biped/Meshy_AI_Animation_Talk_with_Left_Hand_Raised_withSkin.glb"></a-asset-item>
     </a-assets>
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -126,9 +127,14 @@
       <a-plane position="0 -0.02 0" rotation="-90 0 0" width="1.0" height="1.0"
         material="color:#000; opacity:0.15; transparent:true"></a-plane>
 
-      <!-- Avatar model -->
-      <a-entity id="avatarEntity" gltf-model="#avatarModel" position="0 0 0" scale="1.5 1.5 1.5"
-        animation-mixer="clip: *; loop: once; clampWhenFinished: true; timeScale: 0" fix-rendering>
+      <!-- Avatar model (Bow) -->
+      <a-entity id="avatarBowEntity" gltf-model="#avatarBowModel" position="0 0 0" scale="1.5 1.5 1.5"
+        animation-mixer="clip: *; loop: once; clampWhenFinished: true; timeScale: 0" fix-rendering visible="true">
+      </a-entity>
+
+      <!-- Avatar model (Talk) -->
+      <a-entity id="avatarTalkEntity" gltf-model="#avatarTalkModel" position="0 0 0" scale="1.5 1.5 1.5"
+        animation-mixer="clip: *; loop: once; clampWhenFinished: true; timeScale: 0" fix-rendering visible="false">
       </a-entity>
     </a-entity>
 
@@ -168,7 +174,8 @@
     var statusText = document.getElementById('status-text');
     var audioBtn = document.getElementById('audioBtn');
     var sceneEl = document.getElementById('scene');
-    var avatarEntity = document.getElementById('avatarEntity');
+    var avatarBowEntity = document.getElementById('avatarBowEntity');
+    var avatarTalkEntity = document.getElementById('avatarTalkEntity');
 
     startBtn.addEventListener('click', function () {
       overlay.style.display = 'none';
@@ -205,12 +212,15 @@
     var isPlaying = false;
     var bowTimers = [];
 
-    // Trigger a single bow animation (play from start, then stop)
-    function playBow() {
-      // Reset animation to beginning and play
-      avatarEntity.setAttribute('animation-mixer', 'clip: *; loop: once; clampWhenFinished: true; timeScale: 1');
-      // Force restart from frame 0
-      var comp = avatarEntity.components['animation-mixer'];
+    // Trigger a single animation on a specific entity
+    function playAnim(entity) {
+      avatarBowEntity.setAttribute('visible', 'false');
+      avatarTalkEntity.setAttribute('visible', 'false');
+      
+      entity.setAttribute('visible', 'true');
+      entity.setAttribute('animation-mixer', 'clip: *; loop: once; clampWhenFinished: true; timeScale: 1');
+      
+      var comp = entity.components['animation-mixer'];
       if (comp && comp.mixer) {
         comp.mixer.stopAllAction();
         var clips = comp.mixer._actions;
@@ -230,11 +240,19 @@
       bowTimers.forEach(function (t) { clearTimeout(t); });
       bowTimers = [];
 
-      // Bow 1: 「〜ありがとうございました。」 → starts around 2.0s
-      bowTimers.push(setTimeout(function () { playBow(); }, 2000));
+      avatarBowEntity.setAttribute('animation-mixer', 'clip: *; loop: once; clampWhenFinished: true; timeScale: 0');
+      avatarTalkEntity.setAttribute('animation-mixer', 'clip: *; loop: once; clampWhenFinished: true; timeScale: 0');
+      avatarTalkEntity.setAttribute('visible', 'false');
+      avatarBowEntity.setAttribute('visible', 'true');
 
-      // Bow 2: 「それでは、ご検討〜よろしくお願いいたします。」 → starts around 7.5s
-      bowTimers.push(setTimeout(function () { playBow(); }, 7500));
+      // Bow 1: Starts around 2.0s
+      bowTimers.push(setTimeout(function () { playAnim(avatarBowEntity); }, 2000));
+
+      // Talk 1: 3 seconds after first bow starts (2.0s + 3.0s = 5.0s)
+      bowTimers.push(setTimeout(function () { playAnim(avatarTalkEntity); }, 5000));
+
+      // Bow 2: 5 seconds after left-hand gesture starts (5.0s + 5.0s = 10.0s)
+      bowTimers.push(setTimeout(function () { playAnim(avatarBowEntity); }, 10000));
     });
 
     audio.addEventListener('ended', function () {
@@ -242,7 +260,9 @@
       bowTimers.forEach(function (t) { clearTimeout(t); });
       bowTimers = [];
       // Reset to start pose
-      avatarEntity.setAttribute('animation-mixer', 'clip: *; loop: once; clampWhenFinished: true; timeScale: 0');
+      avatarTalkEntity.setAttribute('visible', 'false');
+      avatarBowEntity.setAttribute('visible', 'true');
+      avatarBowEntity.setAttribute('animation-mixer', 'clip: *; loop: once; clampWhenFinished: true; timeScale: 0');
     });
   </script>
 </body>
