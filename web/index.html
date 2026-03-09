@@ -135,7 +135,7 @@
       </a-entity>
 
       <!-- Avatar model (Talk) -->
-      <a-entity id="avatarTalkEntity" gltf-model="#avatarTalkModel" position="0 0 0" rotation="0 -45 0"
+      <a-entity id="avatarTalkEntity" gltf-model="#avatarTalkModel" position="0 0 0" rotation="0 -35 0"
         scale="1.5 1.5 1.5" animation-mixer="clip: *; loop: once; clampWhenFinished: true; timeScale: 0" fix-rendering
         visible="false">
       </a-entity>
@@ -251,11 +251,11 @@
       // Bow 1: Starts around 2.0s
       bowTimers.push(setTimeout(function () { playAnim(avatarBowEntity); }, 2000));
 
-      // Talk 1: starts around 5.0s
-      bowTimers.push(setTimeout(function () { playAnim(avatarTalkEntity); }, 5000));
+      // Talk 1: starts around 6.0s
+      bowTimers.push(setTimeout(function () { playAnim(avatarTalkEntity); }, 6000));
 
-      // Bow 2: Starts right before "それではご検討" (around 14.5s)
-      bowTimers.push(setTimeout(function () { playAnim(avatarBowEntity); }, 14500));
+      // Bow 2: Starts right before "それではご検討" (around 15.5s)
+      bowTimers.push(setTimeout(function () { playAnim(avatarBowEntity); }, 15500));
     });
 
     audio.addEventListener('ended', function () {
