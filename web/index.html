@@ -116,8 +116,10 @@
     device-orientation-permission-ui="enabled: false" loading-screen="enabled: false">
 
     <a-assets>
-      <a-asset-item id="avatarBowModel" src="./assets/avatar_final_01/Meshy_AI_biped/Meshy_AI_Animation_Formal_Bow_withSkin.glb"></a-asset-item>
-      <a-asset-item id="avatarTalkModel" src="./assets/avatar_final_01/Meshy_AI_biped/Meshy_AI_Animation_Talk_with_Left_Hand_Raised_withSkin.glb"></a-asset-item>
+      <a-asset-item id="avatarBowModel"
+        src="./assets/avatar_final_01/Meshy_AI_biped/Meshy_AI_Animation_Formal_Bow_withSkin.glb"></a-asset-item>
+      <a-asset-item id="avatarTalkModel"
+        src="./assets/avatar_final_01/Meshy_AI_biped/Meshy_AI_Animation_Talk_with_Left_Hand_Raised_withSkin.glb"></a-asset-item>
     </a-assets>
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -133,8 +135,9 @@
       </a-entity>
 
       <!-- Avatar model (Talk) -->
-      <a-entity id="avatarTalkEntity" gltf-model="#avatarTalkModel" position="0 0 0" scale="1.5 1.5 1.5"
-        animation-mixer="clip: *; loop: once; clampWhenFinished: true; timeScale: 0" fix-rendering visible="false">
+      <a-entity id="avatarTalkEntity" gltf-model="#avatarTalkModel" position="0 0 0" rotation="0 30 0"
+        scale="1.5 1.5 1.5" animation-mixer="clip: *; loop: once; clampWhenFinished: true; timeScale: 0" fix-rendering
+        visible="false">
       </a-entity>
     </a-entity>
 
@@ -216,10 +219,10 @@
     function playAnim(entity) {
       avatarBowEntity.setAttribute('visible', 'false');
       avatarTalkEntity.setAttribute('visible', 'false');
-      
+
       entity.setAttribute('visible', 'true');
       entity.setAttribute('animation-mixer', 'clip: *; loop: once; clampWhenFinished: true; timeScale: 1');
-      
+
       var comp = entity.components['animation-mixer'];
       if (comp && comp.mixer) {
         comp.mixer.stopAllAction();
