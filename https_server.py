@@ -1,31 +1,56 @@
 """
 Simple HTTPS server that serves the web directory using a self-signed certificate.
 Run with: python https_server.py
-Then access from phone on same WiFi: https://192.168.3.16:8443
+For phone access, set CERT_HOSTS=localhost,192.168.x.x before running.
 """
 import ssl
 import http.server
+import ipaddress
 import os
 import subprocess
 import sys
 
 PORT = 8443
-WEB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web')
-CERT_FILE = os.path.join(WEB_DIR, 'cert.pem')
-KEY_FILE  = os.path.join(WEB_DIR, 'key.pem')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+WEB_DIR = os.path.join(BASE_DIR, 'web')
+CERT_DIR = os.path.join(BASE_DIR, '.certs')
+CERT_FILE = os.path.join(CERT_DIR, 'cert.pem')
+KEY_FILE = os.path.join(CERT_DIR, 'key.pem')
+CERT_HOSTS = [
+    host.strip()
+    for host in os.environ.get('CERT_HOSTS', 'localhost').split(',')
+    if host.strip()
+]
+
+def openssl_san_extension():
+    entries = []
+    for host in CERT_HOSTS:
+        try:
+            ipaddress.ip_address(host)
+            entries.append(f'IP:{host}')
+        except ValueError:
+            entries.append(f'DNS:{host}')
+    return 'subjectAltName=' + ','.join(entries)
 
 def generate_cert():
     """Generate a self-signed cert using the bundled Python's ssl module if possible."""
+    os.makedirs(CERT_DIR, exist_ok=True)
     try:
         from cryptography import x509
         from cryptography.x509.oid import NameOID
         from cryptography.hazmat.primitives import hashes, serialization
         from cryptography.hazmat.primitives.asymmetric import rsa
-        import datetime, ipaddress
+        import datetime
 
         print("Generating self-signed certificate...")
         key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
         name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, u'webar-local')])
+        san_names = []
+        for host in CERT_HOSTS:
+            try:
+                san_names.append(x509.IPAddress(ipaddress.ip_address(host)))
+            except ValueError:
+                san_names.append(x509.DNSName(host))
         cert = (
             x509.CertificateBuilder()
             .subject_name(name)
@@ -35,11 +60,7 @@ def generate_cert():
             .not_valid_before(datetime.datetime.utcnow())
             .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=365))
             .add_extension(
-                x509.SubjectAlternativeName([
-                    x509.DNSName('localhost'),
-                    x509.IPAddress(ipaddress.IPv4Address('192.168.3.16')),
-                    x509.IPAddress(ipaddress.IPv4Address('162.120.184.20')),
-                ]), critical=False
+                x509.SubjectAlternativeName(san_names), critical=False
             )
             .sign(key, hashes.SHA256())
         )
@@ -60,7 +81,7 @@ def generate_cert():
             '-keyout', KEY_FILE, '-out', CERT_FILE,
             '-days', '365', '-nodes',
             '-subj', '/CN=webar-local',
-            '-addext', 'subjectAltName=IP:192.168.3.16,IP:162.120.184.20,DNS:localhost'
+            '-addext', openssl_san_extension()
         ], capture_output=True)
         if result.returncode == 0:
             print("Certificate generated via openssl!")
@@ -90,9 +111,8 @@ server.socket = ctx.wrap_socket(server.socket, server_side=True)
 
 print(f"\n=========================================")
 print(f"  HTTPS Server running!")
-print(f"  PC:    https://localhost:{PORT}")
-print(f"  Phone (same WiFi): https://192.168.3.16:{PORT}")
-print(f"  Phone (External):  https://162.120.184.20:{PORT}")
+for host in CERT_HOSTS:
+    print(f"  URL:   https://{host}:{PORT}")
 print(f"=========================================")
 print(f"  NOTE: On first access, browser will warn about self-signed cert.")
 print(f"  On iPhone Safari: tap 'Show Details' -> 'visit this website' -> Continue")
